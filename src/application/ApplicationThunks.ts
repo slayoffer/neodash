@@ -560,7 +560,7 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
       urlParams.forEach((value, key) => {
         paramsToStore[key] = value;
       });
-      localStorage.setItem('SSO_PARAMS_BEFORE_REDIRECT', JSON.stringify(paramsToStore));
+      
     }
 
     if (standalone) {

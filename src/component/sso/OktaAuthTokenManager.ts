@@ -46,7 +46,8 @@ class OktaAuthTokenManager {
   }
 
   getRefreshToken() {
-    return localStorage.getItem('refresh_token');
+    const credentials = JSON.parse(localStorage.getItem('neo4j.sso.credentials'));
+    return credentials ? credentials.refresh_token : null;
   }
 
   onTokenExpired() {
