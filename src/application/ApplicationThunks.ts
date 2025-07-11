@@ -493,6 +493,11 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
       dispatch(setConnected(false));
       dispatch(setWelcomeScreenOpen(false));
       const success = await initializeSSO(state.application.cachedSSODiscoveryUrl, (credentials) => {
+        const sessionCredentials = sessionStorage.getItem('neo4j.sso.credentials');
+        if (sessionCredentials) {
+          localStorage.setItem('neo4j.sso.credentials', sessionCredentials);
+          sessionStorage.removeItem('neo4j.sso.credentials');
+        }
         if (standalone) {
           // Redirected from SSO and running in viewer mode, merge retrieved config with hardcoded credentials.
           dispatch(
