@@ -1,0 +1,45 @@
+
+= Markdown
+
+include::../../banner.adoc[]
+
+Markdown reports let you specify
+https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#styling-text[Markdown]
+text, to be renderer as rich HTML. This lets you turn your dashboards
+into a storybook with textual descriptions, hyperlinks, images and
+videos.
+
+To use dashboard parameters in Markdown, turn on the `Replace global parameters in Markdown` setting.
+Then, include a variable surrounded by backticks inside the markdown string. For example:
+
+```
+== This is a title
+My variable is equal to `$neodash_person_object['name']`
+```
+
+
+== Examples
+
+=== Basic Markdown
+
+....
+## Hello there!
+I'm a **Markdown** file.
+
+Check out this cool image:
+
+![image](https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/how-to-keep-ducks-call-ducks-1615457181.jpg?resize=240:*)
+....
+
+image::markdown.png[Basic Markdown]
+
+== Advanced Settings
+
+[width="100%",cols="19%,17%,26%,38%",options="header",]
+|===
+|Name |Type |Default Value |Description
+|Replace global parameters in Markdown |on/off |on |If enabled, replaces
+all instances of query parameters (e.g. $neodash_person_name) inside the
+markdown source.
+|Report Description |markdown text | | When specified, adds another button the report header that opens a pop-up. This pop-up contains the rendered markdown from this setting. 
+|===

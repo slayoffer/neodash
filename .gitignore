@@ -1,0 +1,42 @@
+.idea
+*.iml
+*.pem
+*.cert
+*.passphrase
+node_modules
+build
+target
+/node_modules
+/.pnp
+.pnp.js
+.vscode
+
+# testing
+/coverage
+/.nyc_output
+cypress/videos
+cypress/screenshots
+# production
+/build
+/dist
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore builds
+*.tgz
+
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+# Sentry Auth Token
+.env.sentry-build-plugin
