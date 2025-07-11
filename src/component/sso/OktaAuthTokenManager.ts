@@ -63,11 +63,11 @@ class OktaAuthTokenManager {
 
       // **Handle Refresh Token Rotation**
       // Check if a new refresh token was issued and update storage if so.
-      if (newTokens.refresh_token) {
+      if (newTokens.refreshToken) {
         const existingCredentials = JSON.parse(localStorage.getItem('neodash-sso-credentials')) || {};
         const updatedCredentials = {
           ...existingCredentials,
-          refreshToken: newTokens.refresh_token,
+          refreshToken: newTokens.refreshToken,
         };
         localStorage.setItem('neodash-sso-credentials', JSON.stringify(updatedCredentials));
       }
