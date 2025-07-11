@@ -126,8 +126,15 @@ export async function runCypherQuery(
 
       transaction.commit();
     })
-    .catch((e) => {
-      // setFields([]);
+    .catch(async (e) => {
+      // If the token is expired, we can get a new one and retry.
+      if (e.code === 'Neo.ClientError.Security.TokenExpired') {
+        // Wait for a second to let the token refresh.
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Retry the query, but don't call setStatus on the first attempt.
+        runCypherQuery(driver, database, query, parameters, rowLimit, () => {}, setRecords, setFields, fields, useNodePropsAsFields, useReturnValuesAsFields, useHardRowLimit, queryTimeLimit, setSchema);
+        return;
+      }
 
       // Process timeout errors.
       if (
