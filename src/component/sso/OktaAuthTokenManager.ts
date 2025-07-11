@@ -1,6 +1,10 @@
 
 import neo4j from 'neo4j-driver';
 
+// --- DIAGNOSTIC LOG --- //
+console.log('OKTA AUTH TOKEN MANAGER vFINAL DIAGNOSTIC LOADED - 2025-07-11');
+// -------------------- //
+
 class OktaAuthTokenManager {
   private token: any;
   private oktaConfig: any;
