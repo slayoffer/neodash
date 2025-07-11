@@ -46,7 +46,7 @@ class OktaAuthTokenManager {
   }
 
   getRefreshToken() {
-    const credentials = JSON.parse(sessionStorage.getItem('/auth#refresh_data'));
+    const credentials = JSON.parse(localStorage.getItem('neodash-sso-credentials'));
     return credentials ? credentials.refreshToken : null;
   }
 
