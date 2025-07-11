@@ -55,10 +55,6 @@ export async function runCypherQuery(
     // console.log(`Query runner attempted to set schema: ${JSON.stringify(schema)}`);
   }
 ) {
-  // --- FINAL DIAGNOSTIC --- //
-  console.log('RUN CYPHER QUERY DRIVER AUTH:', driver?._config?.auth);
-  // ------------------------ //
-
   // If no query specified, we don't do anything.
   if (query.trim() == '') {
     setFields([]);

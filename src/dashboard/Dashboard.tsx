@@ -61,6 +61,11 @@ const Dashboard = ({
     };
   }, [connection]);
 
+  // Do not render the dashboard until the driver is ready.
+  if (!driver) {
+    return null;
+  }
+
   const content = (
     <Neo4jProvider driver={driver}>
       <NeoDashboardConnectionUpdateHandler
