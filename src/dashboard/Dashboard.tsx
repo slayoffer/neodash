@@ -26,8 +26,13 @@ const Dashboard = ({
 }) => {
   const [driver, setDriver] = React.useState(undefined);
 
-  // If no driver is yet instantiated, create a new one.
-  if (driver == undefined) {
+  // This useEffect hook is the core of the fix. It runs whenever the connection details change.
+  React.useEffect(() => {
+    // Close any existing driver instance.
+    if (driver) {
+      driver.close();
+    }
+
     let newDriver;
     if (connection.sso) {
       const oktaConfig = {
@@ -47,7 +52,15 @@ const Dashboard = ({
       );
     }
     setDriver(newDriver);
-  }
+
+    // Return a cleanup function to close the driver when the component unmounts.
+    return () => {
+      if (newDriver) {
+        newDriver.close();
+      }
+    };
+  }, [connection]);
+
   const content = (
     <Neo4jProvider driver={driver}>
       <NeoDashboardConnectionUpdateHandler
