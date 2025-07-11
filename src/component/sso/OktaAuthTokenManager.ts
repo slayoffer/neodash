@@ -46,13 +46,15 @@ class OktaAuthTokenManager {
       });
 
       const newTokens = await response.json();
+      // DIAGNOSTIC: Log the entire response from Okta.
+      console.log('Okta Refresh Response:', newTokens);
 
       if (!response.ok) {
         // The refresh token was rejected (e.g., expired, revoked).
         // Clear the invalid token from storage to prevent getting stuck.
         localStorage.removeItem('neodash-sso-credentials');
         this.token = null;
-        throw new Error('Refresh token is invalid. Please log in again.');
+        throw new Error(`Refresh token is invalid. Please log in again. Server response: ${JSON.stringify(newTokens)}`);
       }
 
       // Update the access token for the current session.
