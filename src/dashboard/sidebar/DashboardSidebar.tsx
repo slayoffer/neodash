@@ -95,6 +95,11 @@ export const NeoDashboardSidebar = ({
   standaloneSettings,
 }) => {
   const { driver } = useContext<Neo4jContextState>(Neo4jContext);
+
+  // --- FINAL DIAGNOSTIC --- //
+  console.log('DASHBOARD SIDEBAR DRIVER AUTH:', driver?._config?.auth);
+  // ------------------------ //
+
   const [expanded, setOnExpanded] = useState(false);
   const [selectedDashboardIndex, setSelectedDashboardIndex] = React.useState(UNSAVED_DASHBOARD_INDEX);
   const [dashboardDatabase, setDashboardDatabase] = React.useState(database ? database : 'neo4j');
