@@ -1,33 +1,29 @@
 class OktaAuthTokenManager {
   private token: any;
   private oktaConfig: any;
-  private initializationPromise: Promise<void>;
 
   constructor(oktaConfig) {
     this.oktaConfig = oktaConfig;
     this.token = null;
-    this.initializationPromise = this._initializeToken();
+    console.log('OktaAuthTokenManager created.');
   }
 
-  async _initializeToken() {
+  async initialize() {
     console.log('Initializing OktaAuthTokenManager and fetching initial token...');
     await this.refreshToken();
   }
 
-  async waitForInitialization() {
-    return this.initializationPromise;
-  }
-
-  async getToken() {
+  getToken() {
     if (this.isTokenExpired()) {
       console.log('Token is expired, refreshing...');
-      await this.refreshToken();
+      // This is a fire-and-forget refresh. The driver will use the old token
+      // until the refresh is complete. This is not ideal, but it's the best
+      // we can do with the current driver API.
+      this.refreshToken();
     }
 
     if (!this.token || !this.token.access_token) {
-      console.error('No valid token available after initialization/refresh.');
-      // Returning an empty object or throwing an error might be preferable
-      // depending on how the driver handles it.
+      console.error('No valid token available.');
       return undefined;
     }
 
@@ -47,7 +43,7 @@ class OktaAuthTokenManager {
     if (!storedRefreshToken) {
       console.error('No refresh token available in localStorage.');
       this.token = null;
-      return;
+      throw new Error('No refresh token available.');
     }
 
     try {
@@ -71,7 +67,7 @@ class OktaAuthTokenManager {
         console.error('Refresh token was rejected by the server.');
         localStorage.removeItem('neodash-sso-credentials');
         this.token = null;
-        throw new Error(`Refresh token is invalid. Please log in again. Server response: ${JSON.stringify(newTokens)}`);
+        throw new Error(`Refresh token is invalid. Server response: ${JSON.stringify(newTokens)}`);
       }
 
       this.token = {
@@ -92,6 +88,7 @@ class OktaAuthTokenManager {
       console.error('Failed to refresh token:', error);
       this.token = null;
       localStorage.removeItem('neodash-sso-credentials');
+      throw error;
     }
   }
 
