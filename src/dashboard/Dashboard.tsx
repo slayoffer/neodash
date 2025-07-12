@@ -28,6 +28,7 @@ const Dashboard = ({
 
   // This useEffect hook is the core of the fix. It runs whenever the connection details change.
   React.useEffect(() => {
+    console.log('Dashboard.tsx: Connection object received:', connection);
     if (driver) {
       driver.close();
     }
