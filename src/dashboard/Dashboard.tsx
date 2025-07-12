@@ -39,9 +39,11 @@ const Dashboard = ({
         client_id: connection.sso.client_id,
       };
       const authTokenManager = new OktaAuthTokenManager(oktaConfig);
+      const auth = neo4j.auth.bearer(authTokenManager)
+      console.log('Auth object for SSO driver:', auth);
       newDriver = neo4j.driver(
         `${connection.protocol}://${connection.url}`,
-        neo4j.auth.bearer(authTokenManager),
+        auth,
         { userAgent: `neodash/v${version}` }
       );
     } else {
