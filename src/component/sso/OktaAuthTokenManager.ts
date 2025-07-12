@@ -1,23 +1,38 @@
-
-import neo4j from 'neo4j-driver';
-
 class OktaAuthTokenManager {
   private token: any;
   private oktaConfig: any;
+  private initializationPromise: Promise<void>;
 
   constructor(oktaConfig) {
     this.oktaConfig = oktaConfig;
     this.token = null;
+    this.initializationPromise = this._initializeToken();
+  }
+
+  async _initializeToken() {
+    console.log('Initializing OktaAuthTokenManager and fetching initial token...');
+    await this.refreshToken();
+  }
+
+  async waitForInitialization() {
+    return this.initializationPromise;
   }
 
   async getToken() {
     if (this.isTokenExpired()) {
+      console.log('Token is expired, refreshing...');
       await this.refreshToken();
     }
-    if (!this.token) {
+
+    if (!this.token || !this.token.access_token) {
+      console.error('No valid token available after initialization/refresh.');
+      // Returning an empty object or throwing an error might be preferable
+      // depending on how the driver handles it.
       return undefined;
     }
-    return { accessToken: this.token.access_token };
+
+    console.log('Providing token to driver.');
+    return { token: this.token.access_token };
   }
 
   isTokenExpired() {
@@ -30,12 +45,13 @@ class OktaAuthTokenManager {
   async refreshToken() {
     const storedRefreshToken = this.getRefreshToken();
     if (!storedRefreshToken) {
-      // No refresh token available, we can't do anything.
+      console.error('No refresh token available in localStorage.');
       this.token = null;
       return;
     }
 
     try {
+      console.log('Attempting to refresh token with Okta...');
       const response = await fetch(this.oktaConfig.token_endpoint, {
         method: 'POST',
         headers: {
@@ -49,26 +65,22 @@ class OktaAuthTokenManager {
       });
 
       const newTokens = await response.json();
-      // DIAGNOSTIC: Log the entire response from Okta.
       console.log('Okta Refresh Response:', newTokens);
 
       if (!response.ok) {
-        // The refresh token was rejected (e.g., expired, revoked).
-        // Clear the invalid token from storage to prevent getting stuck.
+        console.error('Refresh token was rejected by the server.');
         localStorage.removeItem('neodash-sso-credentials');
         this.token = null;
         throw new Error(`Refresh token is invalid. Please log in again. Server response: ${JSON.stringify(newTokens)}`);
       }
 
-      // Update the access token for the current session.
       this.token = {
         ...newTokens,
         expires_at: Date.now() + newTokens.expires_in * 1000,
       };
 
-      // **Handle Refresh Token Rotation**
-      // Check if a new refresh token was issued and update storage if so.
       if (newTokens.refresh_token) {
+        console.log('New refresh token received, updating localStorage.');
         const existingCredentials = JSON.parse(localStorage.getItem('neodash-sso-credentials')) || {};
         const updatedCredentials = {
           ...existingCredentials,
@@ -78,7 +90,6 @@ class OktaAuthTokenManager {
       }
     } catch (error) {
       console.error('Failed to refresh token:', error);
-      // Ensure we don't try to use a bad token again.
       this.token = null;
       localStorage.removeItem('neodash-sso-credentials');
     }
@@ -87,10 +98,6 @@ class OktaAuthTokenManager {
   getRefreshToken() {
     const credentials = JSON.parse(localStorage.getItem('neodash-sso-credentials'));
     return credentials ? credentials.refreshToken : null;
-  }
-
-  onTokenExpired() {
-    // Cleanup logic if needed
   }
 }
 

@@ -28,35 +28,39 @@ const Dashboard = ({
 
   // This useEffect hook is the core of the fix. It runs whenever the connection details change.
   React.useEffect(() => {
-    // Close any existing driver instance.
-    if (driver) {
-      driver.close();
-    }
+    const setupDriver = async () => {
+      if (driver) {
+        driver.close();
+      }
 
-    let newDriver;
-    if (connection.sso) {
-      const oktaConfig = {
-        token_endpoint: connection.sso.token_endpoint,
-        client_id: connection.sso.client_id,
-      };
-      const authTokenManager = new OktaAuthTokenManager(oktaConfig);
-      newDriver = neo4j.driver(
-        `${connection.protocol}://${connection.url}`,
-        neo4j.auth.bearer(authTokenManager),
-        { userAgent: `neodash/v${version}` }
-      );
-    } else {
-      const auth = neo4j.auth.basic(connection.username, connection.password);
-      newDriver = neo4j.driver(`${connection.protocol}://${connection.url}`, auth, {
-        userAgent: `neodash/v${version}`,
-      });
-    }
-    setDriver(newDriver);
+      let newDriver;
+      if (connection.sso) {
+        const oktaConfig = {
+          token_endpoint: connection.sso.token_endpoint,
+          client_id: connection.sso.client_id,
+        };
+        const authTokenManager = new OktaAuthTokenManager(oktaConfig);
+        await authTokenManager.waitForInitialization(); // Wait for the initial token.
 
-    // Return a cleanup function to close the driver when the component unmounts.
+        newDriver = neo4j.driver(
+          `${connection.protocol}://${connection.url}`,
+          neo4j.auth.bearer(authTokenManager),
+          { userAgent: `neodash/v${version}` }
+        );
+      } else {
+        const auth = neo4j.auth.basic(connection.username, connection.password);
+        newDriver = neo4j.driver(`${connection.protocol}://${connection.url}`, auth, {
+          userAgent: `neodash/v${version}`,
+        });
+      }
+      setDriver(newDriver);
+    };
+
+    setupDriver();
+
     return () => {
-      if (newDriver) {
-        newDriver.close();
+      if (driver) {
+        driver.close();
       }
     };
   }, [connection]);
