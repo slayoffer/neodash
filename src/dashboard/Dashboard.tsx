@@ -40,7 +40,11 @@ const Dashboard = ({
         client_id: connection.sso.client_id,
       };
       const authTokenManager = new OktaAuthTokenManager(oktaConfig);
-      newDriver = neo4j.driver(connection.url, neo4j.auth.bearer(authTokenManager), { userAgent: `neodash/v${version}` });
+      newDriver = neo4j.driver(
+        `${connection.protocol}://${connection.url}`,
+        neo4j.auth.bearer(authTokenManager),
+        { userAgent: `neodash/v${version}` }
+      );
     } else {
       const auth = neo4j.auth.basic(connection.username, connection.password);
       newDriver = neo4j.driver(`${connection.protocol}://${connection.url}`, auth, {

@@ -14,7 +14,7 @@ class OktaAuthTokenManager {
     if (this.isTokenExpired()) {
       await this.refreshToken();
     }
-    return this.token;
+    return { accessToken: this.token.access_token };
   }
 
   isTokenExpired() {
