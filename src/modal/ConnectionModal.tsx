@@ -217,9 +217,9 @@ export default function NeoConnectionModal({
                 port={port}
                 discoveryAPIUrl={discoveryAPIUrl}
                 onSSOAttempt={onSSOAttempt}
-                onClick={() => {
+                onClick={(provider) => {
                   // Remember credentials on click
-                  setConnectionProperties(protocol, url, port, database, '', '');
+                  setConnectionProperties(protocol, url, port, database, '', '', provider);
                 }}
                 providers={ssoSettings.ssoProviders}
               />

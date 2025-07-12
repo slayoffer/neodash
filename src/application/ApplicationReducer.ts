@@ -246,7 +246,7 @@ export const applicationReducer = (state = initialState, action: { type: any; pa
       return state;
     }
     case SET_CONNECTION_PROPERTIES: {
-      const { protocol, url, port, database, username, password } = payload;
+      const { protocol, url, port, database, username, password, sso } = payload;
       state = update(state, {
         connection: {
           protocol: protocol,
@@ -255,6 +255,7 @@ export const applicationReducer = (state = initialState, action: { type: any; pa
           database: database,
           username: username,
           password: password,
+          sso: sso,
         },
       });
       return state;

@@ -56,10 +56,11 @@ export const setConnectionProperties = (
   port: string,
   database: string,
   username: string,
-  password: string
+  password: string,
+  sso: any
 ) => ({
   type: SET_CONNECTION_PROPERTIES,
-  payload: { protocol, url, port, database, username, password },
+  payload: { protocol, url, port, database, username, password, sso },
 });
 
 export const SET_BASIC_CONNECTION_PROPERTIES = 'APPLICATION/SET_BASIC_CONNECTION_PROPERTIES';

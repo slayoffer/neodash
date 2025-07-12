@@ -61,7 +61,7 @@ export const SSOLoginButton = ({ discoveryAPIUrl, hostname, port, onSSOAttempt, 
             onClick={() => {
               // TODO - if we have SSO credentials cached, try and use those first, if fail, do a call to the SSO provider.
               const selectedSSOProvider = savedSSOProviders.find(({ id }) => id === provider.id);
-              onClick();
+              onClick(selectedSSOProvider);
               onSSOAttempt(discoveryUrlValidated);
               authRequestForSSO(selectedSSOProvider);
             }}
