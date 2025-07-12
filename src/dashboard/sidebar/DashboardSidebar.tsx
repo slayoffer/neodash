@@ -97,7 +97,7 @@ export const NeoDashboardSidebar = ({
   const { driver } = useContext<Neo4jContextState>(Neo4jContext);
 
   // --- FINAL DIAGNOSTIC --- //
-  console.log('DASHBOARD SIDEBAR DRIVER:', driver);
+  console.log('DASHBOARD SIDEBAR DRIVER AUTH:', driver?._config?.auth);
   // ------------------------ //
 
   const [expanded, setOnExpanded] = useState(false);

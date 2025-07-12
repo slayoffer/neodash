@@ -13,18 +13,21 @@ class OktaAuthTokenManager {
     await this.refreshToken();
   }
 
-  getToken() {
+  async getToken() {
     if (this.isTokenExpired()) {
       console.log('Token is expired, refreshing...');
-      // This is a fire-and-forget refresh. The driver will use the old token
-      // until the refresh is complete. This is not ideal, but it's the best
-      // we can do with the current driver API.
-      this.refreshToken();
+      try {
+        await this.refreshToken();
+      } catch (e) {
+        console.error('Failed to refresh auth token', e);
+        // Rethrow the error so the driver knows that authentication failed.
+        throw e;
+      }
     }
 
     if (!this.token || !this.token.access_token) {
-      console.error('No valid token available.');
-      return undefined;
+      // This should not happen if refreshToken() succeeds.
+      throw new Error('No valid token available after refresh.');
     }
 
     console.log('Providing token to driver.');
