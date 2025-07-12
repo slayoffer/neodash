@@ -3,7 +3,7 @@ import NeoPage from '../page/Page';
 import NeoDashboardHeader from './header/DashboardHeader';
 import NeoDashboardTitle from './header/DashboardTitle';
 import NeoDashboardHeaderPageList from './header/DashboardHeaderPageList';
-import { createDriver, Neo4jProvider } from 'use-neo4j';
+import { Neo4jProvider } from 'use-neo4j';
 import { applicationGetConnection, applicationGetStandaloneSettings } from '../application/ApplicationSelectors';
 import { connect } from 'react-redux';
 import NeoDashboardConnectionUpdateHandler from '../component/misc/DashboardConnectionUpdateHandler';
@@ -42,14 +42,10 @@ const Dashboard = ({
       const authTokenManager = new OktaAuthTokenManager(oktaConfig);
       newDriver = neo4j.driver(connection.url, neo4j.auth.bearer(authTokenManager), { userAgent: `neodash/v${version}` });
     } else {
-      newDriver = createDriver(
-        connection.protocol,
-        connection.url,
-        connection.port,
-        connection.username,
-        connection.password,
-        { userAgent: `neodash/v${version}` }
-      );
+      const auth = neo4j.auth.basic(connection.username, connection.password);
+      newDriver = neo4j.driver(`${connection.protocol}://${connection.url}`, auth, {
+        userAgent: `neodash/v${version}`,
+      });
     }
     setDriver(newDriver);
 
