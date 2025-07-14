@@ -70,7 +70,7 @@ export const createConnectionThunk =
     const neodashMode = applicationIsStandalone(loggingState) ? 'Standalone' : 'Editor';
     try {
       const driver = sso && sso.refresh_token
-          ? createDriver(protocol, url, port, 'neo4j', new OktaAuthTokenManager(sso), { userAgent: `neodash/v${version}` })
+          ? createDriver(protocol, url, port, username, new OktaAuthTokenManager(sso), { userAgent: `neodash/v${version}` })
           : createDriver(protocol, url, port, username, password, { userAgent: `neodash/v${version}` });
       // eslint-disable-next-line no-console
       console.log('Attempting to connect...');
@@ -540,7 +540,17 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
               credentials
             )
           );
-          dispatch(setConnected(true));
+          dispatch(
+            createConnectionThunk(
+              state.application.connection.protocol,
+              state.application.connection.url,
+              state.application.connection.port,
+              state.application.connection.database,
+              credentials.username,
+              credentials.password,
+              credentials
+            )
+          );
         }
 
         if (standalone) {
