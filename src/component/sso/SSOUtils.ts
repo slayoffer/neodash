@@ -95,6 +95,9 @@ export const initializeSSO = async (cachedSSODiscoveryUrl, _setCredentials) => {
         authLog('Discovery data fetching after auto-redirect failed', 'warn');
       }
       const selectedSSOProvider = mergedSSOProviders.find(({ id }) => id === SSORedirectId);
+      if (selectedSSOProvider.tokenUrl) {
+        localStorage.setItem('tokenUrl', selectedSSOProvider.tokenUrl);
+      }
       authRequestForSSO(selectedSSOProvider);
       return true;
     } catch (error) {

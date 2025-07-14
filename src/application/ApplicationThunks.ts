@@ -1,4 +1,5 @@
-import { createDriver } from 'use-neo4j';
+import { createDriver, AuthToken } from 'use-neo4j';
+import OktaAuthTokenManager from './OktaAuthTokenManager';
 import { initializeSSO } from '../component/sso/SSOUtils';
 import { DEFAULT_SCREEN, Screens } from '../config/ApplicationConfig';
 import { setDashboard } from '../dashboard/DashboardActions';
@@ -63,12 +64,14 @@ import { createUUID } from '../utils/uuid';
  * @param password - Neo4j password.
  */
 export const createConnectionThunk =
-  (protocol, url, port, database, username, password) => (dispatch: any, getState: any) => {
+  (protocol, url, port, database, username, password, sso) => (dispatch: any, getState: any) => {
     const loggingState = getState();
     const loggingSettings = applicationGetLoggingSettings(loggingState);
     const neodashMode = applicationIsStandalone(loggingState) ? 'Standalone' : 'Editor';
     try {
-      const driver = createDriver(protocol, url, port, username, password, { userAgent: `neodash/v${version}` });
+      const driver = sso && sso.refresh_token
+          ? createDriver(protocol, url, port, 'neo4j', new OktaAuthTokenManager(sso), { userAgent: `neodash/v${version}` })
+          : createDriver(protocol, url, port, username, password, { userAgent: `neodash/v${version}` });
       // eslint-disable-next-line no-console
       console.log('Attempting to connect...');
       const validateConnection = (records) => {
@@ -93,7 +96,7 @@ export const createConnectionThunk =
             );
           }
         } else if (records && records[0] && records[0].keys[0] == 'connected') {
-          dispatch(setConnectionProperties(protocol, url, port, database, username, password));
+          dispatch(setConnectionProperties(protocol, url, port, database, username, password, sso));
           dispatch(setConnectionModalOpen(false));
           dispatch(setConnected(true));
           // An old dashboard (pre-2.3.5) may not always have a UUID. We catch this case here.
@@ -185,7 +188,7 @@ export const createConnectionFromDesktopIntegrationThunk = () => (dispatch: any,
   try {
     const desktopConnectionDetails = getState().application.desktopConnection;
     const { protocol, url, port, database, username, password } = desktopConnectionDetails;
-    dispatch(createConnectionThunk(protocol, url, port, database, username, password));
+    dispatch(createConnectionThunk(protocol, url, port, database, username, password, null));
   } catch (e) {
     dispatch(createNotificationThunk('Unable to establish connection to Neo4j Desktop', e));
   }
@@ -349,7 +352,8 @@ export const onConfirmLoadSharedDashboardThunk = () => (dispatch: any, getState:
           shareDetails.port,
           shareDetails.database,
           shareDetails.username,
-          shareDetails.password
+          shareDetails.password,
+          null
         )
       );
     } else {
@@ -508,7 +512,8 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
               config.standalonePort,
               config.standaloneDatabase,
               credentials.username,
-              credentials.password
+              credentials.password,
+              credentials
             )
           );
           dispatch(
@@ -518,7 +523,8 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
               config.standalonePort,
               config.standaloneDatabase,
               credentials.username,
-              credentials.password
+              credentials.password,
+              credentials
             )
           );
         } else {
@@ -530,7 +536,8 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
               state.application.connection.port,
               state.application.connection.database,
               credentials.username,
-              credentials.password
+              credentials.password,
+              credentials
             )
           );
           dispatch(setConnected(true));
@@ -658,7 +665,8 @@ export const initializeApplicationAsStandaloneThunk =
           config.standalonePort,
           config.standaloneDatabase,
           config.standaloneUsername,
-          config.standalonePassword
+          config.standalonePassword,
+          null
         )
       );
     } else {
