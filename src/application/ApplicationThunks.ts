@@ -1,5 +1,4 @@
-import { createDriver, AuthToken } from 'use-neo4j';
-import OktaAuthTokenManager from './OktaAuthTokenManager';
+import { createDriver } from 'use-neo4j';
 import { initializeSSO } from '../component/sso/SSOUtils';
 import { DEFAULT_SCREEN, Screens } from '../config/ApplicationConfig';
 import { setDashboard } from '../dashboard/DashboardActions';
@@ -48,6 +47,9 @@ import { applicationIsStandalone } from './ApplicationSelectors';
 import { applicationGetLoggingSettings } from './logging/LoggingSelectors';
 import { createLogThunk } from './logging/LoggingThunk';
 import { createUUID } from '../utils/uuid';
+import TokenRefreshService from './TokenRefreshService';
+
+let tokenRefreshService: TokenRefreshService | null = null;
 
 /**
  * Application Thunks (https://redux.js.org/usage/writing-logic-thunks) handle complex state manipulations.
@@ -64,14 +66,12 @@ import { createUUID } from '../utils/uuid';
  * @param password - Neo4j password.
  */
 export const createConnectionThunk =
-  (protocol, url, port, database, username, password, sso) => (dispatch: any, getState: any) => {
+  (protocol, url, port, database, username, password) => (dispatch: any, getState: any) => {
     const loggingState = getState();
     const loggingSettings = applicationGetLoggingSettings(loggingState);
     const neodashMode = applicationIsStandalone(loggingState) ? 'Standalone' : 'Editor';
     try {
-      const driver = sso && sso.refresh_token
-          ? createDriver(protocol, url, port, username, new OktaAuthTokenManager(sso), { userAgent: `neodash/v${version}` })
-          : createDriver(protocol, url, port, username, password, { userAgent: `neodash/v${version}` });
+      const driver = createDriver(protocol, url, port, username, password, { userAgent: `neodash/v${version}` });
       // eslint-disable-next-line no-console
       console.log('Attempting to connect...');
       const validateConnection = (records) => {
@@ -96,7 +96,7 @@ export const createConnectionThunk =
             );
           }
         } else if (records && records[0] && records[0].keys[0] == 'connected') {
-          dispatch(setConnectionProperties(protocol, url, port, database, username, password, sso));
+          dispatch(setConnectionProperties(protocol, url, port, database, username, password));
           dispatch(setConnectionModalOpen(false));
           dispatch(setConnected(true));
           // An old dashboard (pre-2.3.5) may not always have a UUID. We catch this case here.
@@ -188,7 +188,7 @@ export const createConnectionFromDesktopIntegrationThunk = () => (dispatch: any,
   try {
     const desktopConnectionDetails = getState().application.desktopConnection;
     const { protocol, url, port, database, username, password } = desktopConnectionDetails;
-    dispatch(createConnectionThunk(protocol, url, port, database, username, password, null));
+    dispatch(createConnectionThunk(protocol, url, port, database, username, password));
   } catch (e) {
     dispatch(createNotificationThunk('Unable to establish connection to Neo4j Desktop', e));
   }
@@ -352,8 +352,7 @@ export const onConfirmLoadSharedDashboardThunk = () => (dispatch: any, getState:
           shareDetails.port,
           shareDetails.database,
           shareDetails.username,
-          shareDetails.password,
-          null
+          shareDetails.password
         )
       );
     } else {
@@ -523,8 +522,7 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
               config.standalonePort,
               config.standaloneDatabase,
               credentials.username,
-              credentials.password,
-              credentials
+              credentials.password
             )
           );
         } else {
@@ -540,18 +538,14 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
               credentials
             )
           );
-          dispatch(
-            createConnectionThunk(
-              state.application.connection.protocol,
-              state.application.connection.url,
-              state.application.connection.port,
-              state.application.connection.database,
-              credentials.username,
-              credentials.password,
-              credentials
-            )
-          );
+          dispatch(setConnected(true));
         }
+
+        if (tokenRefreshService) {
+          tokenRefreshService.stop();
+        }
+        tokenRefreshService = new TokenRefreshService(getState());
+        tokenRefreshService.start();
 
         if (standalone) {
           if (urlParams.get('id')) {
@@ -675,8 +669,7 @@ export const initializeApplicationAsStandaloneThunk =
           config.standalonePort,
           config.standaloneDatabase,
           config.standaloneUsername,
-          config.standalonePassword,
-          null
+          config.standalonePassword
         )
       );
     } else {
