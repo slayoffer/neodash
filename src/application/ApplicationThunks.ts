@@ -544,7 +544,7 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
         if (tokenRefreshService) {
           tokenRefreshService.stop();
         }
-        tokenRefreshService = new TokenRefreshService(getState());
+        tokenRefreshService = new TokenRefreshService(getState, dispatch);
         tokenRefreshService.start();
 
         if (standalone) {

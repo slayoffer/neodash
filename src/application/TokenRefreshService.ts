@@ -1,13 +1,14 @@
 
-import { Store } from 'redux';
 import { setConnectionProperties } from './ApplicationActions';
 
 class TokenRefreshService {
-  private store: Store;
+  private getState: () => any;
+  private dispatch: (action: any) => void;
   private timeoutId: NodeJS.Timeout | null = null;
 
-  constructor(store: Store) {
-    this.store = store;
+  constructor(getState: () => any, dispatch: (action: any) => void) {
+    this.getState = getState;
+    this.dispatch = dispatch;
   }
 
   public start() {
@@ -22,7 +23,7 @@ class TokenRefreshService {
   }
 
   private scheduleRefresh() {
-    const state = this.store.getState();
+    const state = this.getState();
     const { sso } = state.application.connection;
 
     if (!sso || !sso.refresh_token || !sso.expires_in) {
@@ -38,7 +39,7 @@ class TokenRefreshService {
   }
 
   private async refreshToken() {
-    const state = this.store.getState();
+    const state = this.getState();
     const { sso } = state.application.connection;
 
     if (!sso || !sso.refresh_token) {
@@ -68,7 +69,7 @@ class TokenRefreshService {
 
       const { protocol, url, port, database, username } = state.application.connection;
 
-      this.store.dispatch(
+      this.dispatch(
         setConnectionProperties(protocol, url, port, database, username, newToken.access_token, {
           ...sso,
           ...newToken,
