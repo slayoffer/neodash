@@ -32,7 +32,7 @@ class OktaAuthTokenManager implements AuthTokenManager {
     return Date.now() > this.expires - 60000;
   }
 
-  """  private async refresh(): Promise<void> {
+  private async refresh(): Promise<void> {
     if (!this.refreshToken) {
       throw new Error('No refresh token available.');
     }
@@ -56,7 +56,7 @@ class OktaAuthTokenManager implements AuthTokenManager {
 
     const newToken = await response.json();
     this.processNewToken(newToken);
-  }""
+  }
 }
 
 export default OktaAuthTokenManager;
