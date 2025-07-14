@@ -51,6 +51,9 @@ import TokenRefreshService from './TokenRefreshService';
 
 let tokenRefreshService: TokenRefreshService | null = null;
 
+
+
+
 /**
  * Application Thunks (https://redux.js.org/usage/writing-logic-thunks) handle complex state manipulations.
  * Several actions/other thunks may be dispatched from here.
@@ -65,8 +68,7 @@ let tokenRefreshService: TokenRefreshService | null = null;
  * @param username - Neo4j username.
  * @param password - Neo4j password.
  */
-export const createConnectionThunk =
-  (protocol, url, port, database, username, password) => (dispatch: any, getState: any) => {
+export const createConnectionThunk = (protocol, url, port, database, username, password, sso) => (dispatch: any, getState: any) => {
     const loggingState = getState();
     const loggingSettings = applicationGetLoggingSettings(loggingState);
     const neodashMode = applicationIsStandalone(loggingState) ? 'Standalone' : 'Editor';
@@ -96,7 +98,7 @@ export const createConnectionThunk =
             );
           }
         } else if (records && records[0] && records[0].keys[0] == 'connected') {
-          dispatch(setConnectionProperties(protocol, url, port, database, username, password));
+          dispatch(setConnectionProperties(protocol, url, port, database, username, password, sso));
           dispatch(setConnectionModalOpen(false));
           dispatch(setConnected(true));
           // An old dashboard (pre-2.3.5) may not always have a UUID. We catch this case here.
@@ -525,6 +527,11 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
               credentials.password
             )
           );
+        if (tokenRefreshService) {
+          tokenRefreshService.stop();
+        }
+        tokenRefreshService = new TokenRefreshService(getState, dispatch);
+        tokenRefreshService.start();
         } else {
           // Redirected from SSO and running in editor mode, merge retrieved config with existing details.
           dispatch(
@@ -541,17 +548,7 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
           dispatch(setConnected(true));
         }
 
-        if (tokenRefreshService) {
-          tokenRefreshService.stop();
-        }
-        tokenRefreshService = new TokenRefreshService(getState, dispatch);
-        tokenRefreshService.start();
-
-        if (tokenRefreshService) {
-          tokenRefreshService.stop();
-        }
-        tokenRefreshService = new TokenRefreshService(getState, dispatch);
-        tokenRefreshService.start();
+        
 
         if (standalone) {
           if (urlParams.get('id')) {
