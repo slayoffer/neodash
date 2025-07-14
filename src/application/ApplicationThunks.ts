@@ -547,6 +547,12 @@ export const loadApplicationConfigThunk = () => async (dispatch: any, getState: 
         tokenRefreshService = new TokenRefreshService(getState, dispatch);
         tokenRefreshService.start();
 
+        if (tokenRefreshService) {
+          tokenRefreshService.stop();
+        }
+        tokenRefreshService = new TokenRefreshService(getState, dispatch);
+        tokenRefreshService.start();
+
         if (standalone) {
           if (urlParams.get('id')) {
             dispatch(setDashboardToLoadAfterConnecting(urlParams.get('id')));

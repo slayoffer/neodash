@@ -1,4 +1,4 @@
-
+import { Store } from 'redux';
 import { setConnectionProperties } from './ApplicationActions';
 
 class TokenRefreshService {
