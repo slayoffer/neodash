@@ -5,6 +5,7 @@ class OktaAuthTokenManager implements AuthTokenManager {
   private token: AuthToken | null = null;
   private refreshToken: string | null = null;
   private expires: number | null = null;
+  private refreshPromise: Promise<void> | null = null;
 
   constructor(initialToken: AuthToken) {
     this.processNewToken(initialToken);
@@ -19,7 +20,12 @@ class OktaAuthTokenManager implements AuthTokenManager {
 
   public async getToken(): Promise<AuthToken | null> {
     if (this.isTokenExpired()) {
-      await this.refresh();
+      if (!this.refreshPromise) {
+        this.refreshPromise = this.refresh().finally(() => {
+          this.refreshPromise = null;
+        });
+      }
+      await this.refreshPromise;
     }
     return this.token;
   }
